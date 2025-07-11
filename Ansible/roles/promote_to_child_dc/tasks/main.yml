@@ -1,0 +1,69 @@
+---
+- name: Ensure RSAT-Role-Tools are installed
+  win_feature:
+    name: RSAT-Role-Tools
+    state: present
+    include_sub_features: yes
+
+- name: Ensure RSAT-AD-Tools are installed
+  win_feature:
+    name: RSAT-AD-Tools
+    state: present
+    include_sub_features: yes
+
+- name: Ensure RSAT-AD-PowerShell is installed
+  win_feature:
+    name: RSAT-AD-PowerShell
+    state: present
+
+- name: Install AD-Domain-Services Module
+  win_feature:
+    name: AD-Domain-Services
+    state: present
+
+- name: Ensure DNS module is installed
+  win_feature:
+    name: DNS
+    state: present
+
+- name: Import the ActiveDirectory module
+  win_shell: |
+    Import-Module ActiveDirectory
+  args:
+    executable: powershell
+  register: import_ad_module
+
+# Restart the Windows server
+- name: Restart the server
+  win_reboot:
+    pre_reboot_delay: 5
+    reboot_timeout: 600
+    post_reboot_delay: 30
+
+- name: Run PromoteToChildDC.ps1 to promote server to domain controller of child domain 
+  win_shell: |
+
+    cd c:\windows\tasks\LudusHound\{{ ludushound_domain }}\
+
+    powershell -ep bypass C:\windows\tasks\LudusHound\Scripts\PromoteToChildDC.ps1 -parentdomain "{{ promote_to_child_dc_parent_domain }}" -childfqdn "{{ promote_to_child_dc_childfqdn }}" -SafeModeAdministratorPassword "password" -EnterpriseAdminAccount "domainadmin" -EnterpriseAdminPass "password"
+    
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+
+# Wait for 5 minutes (300 seconds)
+- name: Wait for 5 minutes
+  win_wait_for_process:
+    sleep: 300
+  ignore_errors: yes
+
+# Restart the Windows server
+- name: Restart the server
+  win_reboot:
+    pre_reboot_delay: 5
+    reboot_timeout: 600
+    post_reboot_delay: 30
+

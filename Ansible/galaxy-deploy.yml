@@ -1,0 +1,57 @@
+---
+# Automated release playbook for Ansible Collections.
+#
+# Originally based on Ericsysmin's 2020 blog post. Meant to be used in a GitHub
+# Actions CI environment.
+#
+# Requires a ANSIBLE_GALAXY_TOKEN secret to be configured on the GitHub repo.
+#
+# Usage:
+#   ansible-playbook -i 'localhost,' galaxy-deploy.yml \
+#   -e "github_tag=${{ github.ref }}"
+
+- name: Deploy new Collection version to Galaxy.
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    namespace: bagelByt3s
+    collection: ludushound
+    # Requires github_tag to be set when calling playbook.
+    release_tag: "{{ github_tag.split('/')[-1] }}"
+
+  pre_tasks:
+    - name: Ensure ANSIBLE_GALAXY_TOKEN is set.
+      ansible.builtin.fail:
+        msg: A valid ANSIBLE_GALAXY_TOKEN must be set.
+      when: "lookup('env', 'ANSIBLE_GALAXY_TOKEN') | length == 0"
+
+    - name: Ensure the ~/.ansible directory exists.
+      ansible.builtin.file:
+        path: ~/.ansible
+        state: directory
+        mode: "0755"
+
+    - name: Write the Galaxy token to ~/.ansible/galaxy_token
+      ansible.builtin.copy:
+        content: |
+          token: {{ lookup('env', 'ANSIBLE_GALAXY_TOKEN') }}
+        dest: ~/.ansible/galaxy_token
+        mode: "0600"
+
+  tasks:
+    - name: Ensure the galaxy.yml tag is up to date.
+      ansible.builtin.lineinfile:
+        path: galaxy.yml
+        regexp: "^version:"
+        line: 'version: "{{ release_tag }}"'
+
+    - name: Build the collection.
+      ansible.builtin.command: ansible-galaxy collection build
+      changed_when: true
+
+    - name: Publish the collection.
+      ansible.builtin.command: >
+        ansible-galaxy collection publish ./{{ namespace }}-{{ collection }}-{{ release_tag }}.tar.gz
+      changed_when: true

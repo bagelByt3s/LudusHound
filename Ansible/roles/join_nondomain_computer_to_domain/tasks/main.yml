@@ -1,0 +1,50 @@
+---
+#- name: Ensure RSAT tools are installed
+#  win_feature:
+#    name: RSAT-AD-PowerShell
+#    state: present
+
+#- name: Install Ad-Domain-Services Module
+#  win_feature:
+#    name: AD-Domain-Services
+#    state: present
+
+#- name: Ensure DNS module is installed
+#  win_feature:
+#    name: DNS
+#    state: present
+
+- name: Import the ActiveDirectory module
+  win_shell: |
+    Import-Module ActiveDirectory
+  args:
+    executable: powershell
+  register: import_ad_module
+
+
+- name: Add Computer to domain
+  win_shell: |
+    cd c:\windows\tasks\LudusHound\{{ ludushound_domain }}
+
+    powershell -ep bypass -file "c:\windows\tasks\LudusHound\Scripts\JoinNonDomainComputerToDomain.ps1" -DomainName '{{ ludushound_domain }}' -Username 'domainadmin' -Password 'password'
+
+    
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '.\localuser'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+
+  # Wait for 10 seconds 
+- name: Wait for 10 seconds
+  win_wait_for_process:
+    sleep: 10
+  ignore_errors: yes
+
+# Restart the Windows server
+- name: Restart the server
+  win_reboot:
+    pre_reboot_delay: 5
+    reboot_timeout: 600
+    post_reboot_delay: 30

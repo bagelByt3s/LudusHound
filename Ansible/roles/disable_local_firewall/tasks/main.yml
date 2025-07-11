@@ -1,0 +1,18 @@
+---
+
+## Disable Firewall
+
+- name: Disable Password Policy 
+  win_shell: |
+
+    Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
+
+    
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludushound_domain }}\administrator'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+  retries: 3
+  delay: 60

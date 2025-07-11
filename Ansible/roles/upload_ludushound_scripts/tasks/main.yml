@@ -1,0 +1,167 @@
+---
+## Check and Create C:\Windows\Tasks Directory
+- name: Check if C:\Windows\Tasks directory exists
+  ansible.builtin.win_stat:
+    path: 'C:\Windows\Tasks'
+  register: tasks_dir_status
+
+- name: Create C:\Windows\Tasks directory if it doesn't exist
+  ansible.builtin.win_file:
+    path: 'C:\Windows\Tasks'
+    state: directory
+  when: not tasks_dir_status.stat.exists
+
+## Check and Create C:\Windows\Tasks\LudusHound Directory
+- name: Check if C:\Windows\Tasks\LudusHound directory exists
+  ansible.builtin.win_stat:
+    path: 'C:\Windows\Tasks\LudusHound'
+  register: tasks_dir_status_ludus
+
+- name: Create C:\Windows\Tasks\LudusHound directory if it doesn't exist
+  ansible.builtin.win_file:
+    path: 'C:\Windows\Tasks\LudusHound'
+    state: directory
+  when: not tasks_dir_status_ludus.stat.exists
+
+## Check and Create C:\Windows\Tasks\LudusHound\Scripts Directory
+- name: Check if C:\Windows\Tasks\LudusHound\Scripts directory exists
+  ansible.builtin.win_stat:
+    path: 'C:\Windows\Tasks\LudusHound\Scripts'
+  register: tasks_dir_status_scripts
+
+- name: Create C:\Windows\Tasks\LudusHound directory if it doesn't exist
+  ansible.builtin.win_file:
+    path: 'C:\Windows\Tasks\LudusHound\Scripts'
+    state: directory
+  when: not tasks_dir_status_scripts.stat.exists
+
+## Check and Create C:\Windows\Tasks\LudusHound\Scripts\Relationships Directory
+- name: Check if C:\Windows\Tasks\LudusHound\Scripts\Relationships directory exists
+  ansible.builtin.win_stat:
+    path: 'C:\Windows\Tasks\LudusHound\Scripts\Relationships'
+  register: tasks_dir_status_scripts
+
+- name: Create C:\Windows\Tasks\LudusHound directory if it doesn't exist
+  ansible.builtin.win_file:
+    path: 'C:\Windows\Tasks\LudusHound\Scripts\Relationships'
+    state: directory
+  when: not tasks_dir_status_scripts.stat.exists
+
+# Upload all files in the files/ folder to C:\Windows\Tasks\LudusHound\Scripts
+#- name: Upload files from files/ to C:\Windows\Tasks\LudusHound\Scripts
+#  ansible.builtin.copy:
+#    src: "{{ item }}"
+#    dest: "C:\\Windows\\Tasks\\LudusHound\\Scripts\\{{ item | basename }}"
+#    remote_src: no
+#  with_fileglob:
+#    - "files/*"
+
+## Upload all files in the files/Relationships folder to C:\Windows\Tasks\LudusHound\Scripts\Relationships
+#- name: Upload files from files/Relationships to C:\Windows\Tasks\LudusHound\Scripts\Relationships
+#  ansible.builtin.copy:
+#    src: "{{ item }}"
+#    dest: "C:\\Windows\\Tasks\\LudusHound\\Scripts\\Relationships\\{{ item | basename }}"
+#    remote_src: no
+#  with_fileglob:
+#    - "files/Relationships/*"
+
+## Get file lists using fileglob
+- name: Get list of script files
+  ansible.builtin.set_fact:
+    script_files: "{{ lookup('fileglob', 'files/*', wantlist=True) | difference(lookup('fileglob', 'files/Relationships/*', wantlist=True)) }}"
+  delegate_to: localhost
+
+- name: Get list of relationship files
+  ansible.builtin.set_fact:
+    relationship_files: "{{ lookup('fileglob', 'files/Relationships/*', wantlist=True) }}"
+  delegate_to: localhost
+
+- name: Debug found files
+  ansible.builtin.debug:
+    msg:
+      - "Script files: {{ script_files }}"
+      - "Relationship files: {{ relationship_files }}"
+  delegate_to: localhost
+
+## Create temporary directories
+- name: Create temporary directory for scripts
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: scripts
+  register: temp_scripts_dir
+  delegate_to: localhost
+  when: script_files | length > 0
+
+- name: Create temporary directory for relationships
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: relationships
+  register: temp_relationships_dir
+  delegate_to: localhost
+  when: relationship_files | length > 0
+
+## Create zip files
+- name: Create scripts zip file
+  ansible.builtin.archive:
+    path: "{{ script_files }}"
+    dest: "{{ temp_scripts_dir.path }}/scripts.zip"
+    format: zip
+  delegate_to: localhost
+  register: scripts_zip_result
+  when: script_files | length > 0
+
+- name: Create relationships zip file
+  ansible.builtin.archive:
+    path: "{{ relationship_files }}"
+    dest: "{{ temp_relationships_dir.path }}/relationships.zip"
+    format: zip
+  delegate_to: localhost
+  register: relationships_zip_result
+  when: relationship_files | length > 0
+
+## Upload zip files
+- name: Upload scripts.zip to target
+  ansible.builtin.win_copy:
+    src: "{{ temp_scripts_dir.path }}/scripts.zip"
+    dest: "C:\\Windows\\Tasks\\LudusHound\\Scripts\\scripts.zip"
+    remote_src: no
+  when: script_files | length > 0 and scripts_zip_result is defined and scripts_zip_result.changed
+
+- name: Upload relationships.zip to target
+  ansible.builtin.win_copy:
+    src: "{{ temp_relationships_dir.path }}/relationships.zip"
+    dest: "C:\\Windows\\Tasks\\LudusHound\\Scripts\\Relationships\\relationships.zip"
+    remote_src: no
+  when: relationship_files | length > 0 and relationships_zip_result is defined and relationships_zip_result.changed
+
+## Extract zip files
+- name: Extract scripts.zip
+  community.windows.win_unzip:
+    src: "C:\\Windows\\Tasks\\LudusHound\\Scripts\\scripts.zip"
+    dest: "C:\\Windows\\Tasks\\LudusHound\\Scripts"
+    delete_archive: yes
+  when: script_files | length > 0 and scripts_zip_result is defined and scripts_zip_result.changed
+
+- name: Extract relationships.zip
+  community.windows.win_unzip:
+    src: "C:\\Windows\\Tasks\\LudusHound\\Scripts\\Relationships\\relationships.zip"
+    dest: "C:\\Windows\\Tasks\\LudusHound\\Scripts\\Relationships"
+    delete_archive: yes
+  when: relationship_files | length > 0 and relationships_zip_result is defined and relationships_zip_result.changed
+
+## Clean up temporary directories
+- name: Remove temporary directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "{{ temp_scripts_dir.path | default('') }}"
+    - "{{ temp_relationships_dir.path | default('') }}"
+  delegate_to: localhost
+  when: (temp_scripts_dir is defined and temp_scripts_dir.path is defined) or
+        (temp_relationships_dir is defined and temp_relationships_dir.path is defined)
+
+
+- name: Sleep for 10 seconds
+  pause:
+    seconds: 10

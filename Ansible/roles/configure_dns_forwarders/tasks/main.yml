@@ -1,0 +1,31 @@
+---
+- name: Ensure RSAT tools are installed
+  win_feature:
+    name: 
+      - RSAT-AD-PowerShell
+      - RSAT-DNS-Server
+    state: present
+
+- name: Import the ActiveDirectory module
+  win_shell: |
+    Import-Module ActiveDirectory
+  args:
+    executable: powershell
+  register: import_ad_module
+
+- name: Run Configure_DNS.ps1 to read the ComputerIPConfig.json file and configure DNS
+  win_shell: |
+
+    cd c:\windows\tasks\LudusHound\{{ ludushound_domain }}\
+
+    Import-Module DnsServer
+
+    powershell -ep bypass C:\windows\tasks\LudusHound\Scripts\Configure_DNS.ps1 -f C:\windows\tasks\LudusHound\computerIPConfig.json -NotChildDomains
+    
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+

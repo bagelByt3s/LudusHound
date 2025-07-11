@@ -1,0 +1,30 @@
+---
+
+# Restart the Windows server
+- name: Restart the server
+  win_reboot:
+    pre_reboot_delay: 5
+    reboot_timeout: 600
+    post_reboot_delay: 30
+
+# Wait for 5 minutes (300 seconds)
+- name: Wait for 5 minutes
+  win_wait_for_process:
+    sleep: 300
+  ignore_errors: yes
+
+
+- name: Disable Password Policy 
+  win_shell: |
+
+    Set-ADDefaultDomainPasswordPolicy -Identity (Get-ADDomain).DistinguishedName -MinPasswordLength 0 -ComplexityEnabled $false -LockoutThreshold 0 -MaxPasswordAge 0.00:00:00
+
+    
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludushound_domain }}\administrator'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+  retries: 3
+  delay: 60

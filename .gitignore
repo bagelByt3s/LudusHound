@@ -1,0 +1,4 @@
+# Ludus specific ignores
+LudusRanges/
+Tmp/
+LudusHound

@@ -1,0 +1,26 @@
+---
+- name: Ensure RSAT tools are installed
+  win_feature:
+    name: RSAT-AD-PowerShell
+    state: present
+
+- name: Import the ActiveDirectory module
+  win_shell: |
+    Import-Module ActiveDirectory
+  args:
+    executable: powershell
+  register: import_ad_module
+
+- name: Run CreateUsers.ps1 to read the users.json BloodHound file and create users
+  win_shell: |
+
+    cd c:\windows\tasks\LudusHound\{{ ludushound_domain }}\
+    
+    powershell -ep bypass c:\Windows\Tasks\LudusHound\Scripts\CreateUsers.ps1 -f .\Users.json -fullSend
+
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"

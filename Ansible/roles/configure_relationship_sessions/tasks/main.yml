@@ -1,0 +1,29 @@
+## Check and Create C:\Windows\Tasks Directory
+- name: Check if C:\Windows\Tasks directory exists
+  ansible.builtin.win_stat:
+    path: 'C:\Windows\Tasks'
+  register: tasks_dir_status
+
+
+
+#- name: Import the ActiveDirectory module
+#  win_shell: |
+#    Import-Module ActiveDirectory
+#  args:
+#    executable: powershell
+#  register: import_ad_module
+
+- name: Run Configure_Sessions.ps1 to read the HasSession.json file and configure session to run powershell.exe via schtask as the target user every 10 minutes and on reboot 
+  win_shell: |
+
+    cd c:\windows\tasks\LudusHound\{{ ludushound_domain }}\
+
+    powershell -ep bypass C:\windows\tasks\LudusHound\Scripts\Relationships\Configure_Sessions.ps1 -f .\Relationships\HasSession.json
+    
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludushound_domain }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+

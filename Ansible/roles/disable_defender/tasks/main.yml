@@ -1,0 +1,90 @@
+---
+- name: Disable Windows Defender real-time monitoring via registry
+  win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender
+    name: DisableAntiSpyware
+    data: 1
+    type: dword
+  register: defender_registry
+
+- name: Disable Windows Defender real-time protection
+  win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection
+    name: DisableRealtimeMonitoring
+    data: 1
+    type: dword
+  register: realtime_registry
+
+- name: Disable Windows Defender scanning of archives
+  win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection
+    name: DisableScanningNetworkFiles
+    data: 1
+    type: dword
+
+- name: Disable Windows Defender behavior monitoring
+  win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection
+    name: DisableBehaviorMonitoring
+    data: 1
+    type: dword
+
+- name: Disable Windows Defender IOAV protection
+  win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection
+    name: DisableIOAVProtection
+    data: 1
+    type: dword
+
+- name: Disable Windows Defender scanning
+  win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection
+    name: DisableScriptScanning
+    data: 1
+    type: dword
+
+- name: Disable Windows Defender cloud protection
+  win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet
+    name: SpynetReporting
+    data: 0
+    type: dword
+
+- name: Disable Windows Defender sample submission
+  win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet
+    name: SubmitSamplesConsent
+    data: 0
+    type: dword
+
+## Lets see if defender is still turned off
+#- name: Disable Windows Defender via PowerShell
+#  win_shell: |
+#    Set-MpPreference -DisableRealtimeMonitoring $true
+#    Set-MpPreference -DisableBehaviorMonitoring $true
+#    Set-MpPreference -DisableBlockAtFirstSeen $true
+#    Set-MpPreference -DisableIOAVProtection $true
+#    Set-MpPreference -DisableScriptScanning $true
+#    Set-MpPreference -SubmitSamplesConsent NeverSend
+#  ignore_errors: yes  # Some systems may not have these cmdlets
+  
+#- name: Stop and disable Windows Defender service
+#  win_service:
+#    name: WinDefend
+#    state: stopped
+#    start_mode: disabled
+#  ignore_errors: yes  # Service might not be stoppable on some Windows versions
+  
+- name: Disable Windows Defender Security Center
+  win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\Notifications
+    name: DisableNotifications
+    data: 1
+    type: dword
+  ignore_errors: yes
+
+- name: Reboot Windows to apply changes
+  win_reboot:
+    msg: "Rebooting to apply Windows Defender changes"
+    pre_reboot_delay: 15
+  ignore_errors: yes

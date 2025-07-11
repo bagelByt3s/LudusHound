@@ -1,0 +1,21 @@
+---
+- name: Import the ActiveDirectory module
+  win_shell: |
+    Import-Module ActiveDirectory
+  args:
+    executable: powershell
+  register: import_ad_module
+
+- name: Run Configure_UnConstrainedDelegation_Computer.ps1 to read the Computers.json BloodHound file and configure current computer to have unconstrained delegation permissions (According to Computers.json) 
+  win_shell: |
+
+    cd c:\windows\tasks\LudusHound\{{ ludushound_domain }}\
+    
+    powershell -ep bypass c:\Windows\Tasks\LudusHound\Scripts\Configure_UnconstrainedDelegation_Computer.ps1 -f .\Computers.json -fullSend
+
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludushound_domain }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"

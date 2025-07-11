@@ -1,0 +1,56 @@
+## Check and Create C:\Windows\Tasks Directory
+- name: Check if C:\Windows\Tasks directory exists
+  ansible.builtin.win_stat:
+    path: 'C:\Windows\Tasks'
+  register: tasks_dir_status
+
+
+- name: Ensure RSAT tools are installed
+  win_feature:
+    name: RSAT-AD-PowerShell
+    state: present
+
+- name: Import the ActiveDirectory module
+  win_shell: |
+    Import-Module ActiveDirectory
+  args:
+    executable: powershell
+  register: import_ad_module
+
+## This does not work, unsure why. It runs and theres a log but the permissions are not set 
+- name: Run Configure_GenericAll_Permissions.ps1 to read the GenericAll.json and configure GenericAll Permissions
+  win_shell: |
+
+    cd c:\windows\tasks\LudusHound\{{ ludushound_domain }}\
+
+    powershell -ep bypass C:\windows\tasks\ludushound\scripts\Relationships\Configure_ForceChangePassword.ps1 -f .\Relationships\ForceChangePassword.json -fullsend
+    
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludushound_domain }}\domainadmin'
+    ansible_become_password: 'password'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+
+
+# Wait for 30 seconds
+- name: Wait 30 Seconds
+  win_wait_for_process:
+    sleep: 30
+  ignore_errors: yes
+
+
+- name: Run Configure_GenericAll_Permissions.ps1 to read the GenericAll.json and configure GenericAll Permissions
+  win_shell: |
+
+    cd c:\windows\tasks\LudusHound\{{ ludushound_domain }}\
+
+    powershell -ep bypass C:\windows\tasks\ludushound\scripts\Relationships\Configure_ForceChangePassword.ps1 -f .\Relationships\ForceChangePassword.json -fullsend
+    
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludushound_domain }}\domainadmin'
+    ansible_become_password: 'password'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+

@@ -1,0 +1,37 @@
+---
+- name: Ensure RSAT tools are installed
+  win_feature:
+    name: RSAT-AD-PowerShell
+    state: present
+
+- name: Install Ad-Domain-Services Module
+  win_feature:
+    name: AD-Domain-Services
+    state: present
+
+- name: Ensure DNS module is installed
+  win_feature:
+    name: DNS
+    state: present
+
+- name: Import the ActiveDirectory module
+  win_shell: |
+    Import-Module ActiveDirectory
+  args:
+    executable: powershell
+  register: import_ad_module
+
+
+- name: Run Configure_DomainTrusts.ps1 to read the DomainTrusts.json and create two way inbound/outbound domain trust
+  win_shell: |
+
+    cd c:\windows\tasks\LudusHound\{{ ludushound_domain }}\
+    
+    powershell -ep bypass c:\Windows\Tasks\LudusHound\Scripts\Relationships\Configure_DomainTrusts.ps1 -f C:\Windows\Tasks\LudusHound\Relationships\DomainTrusts.json -fullSend
+
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"

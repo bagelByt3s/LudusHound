@@ -1,0 +1,38 @@
+---
+## Check and Create C:\Windows\Tasks Directory
+- name: Check if C:\Windows\Tasks directory exists
+  ansible.builtin.win_stat:
+    path: 'C:\Windows\Tasks'
+  register: tasks_dir_status
+
+- name: Create C:\Windows\Tasks directory if it doesn't exist
+  ansible.builtin.win_file:
+    path: 'C:\Windows\Tasks'
+    state: directory
+  when: not tasks_dir_status.stat.exists
+
+## Check and Create C:\Windows\Tasks\LudusHound Directory
+- name: Check if C:\Windows\Tasks\LudusHound directory exists
+  ansible.builtin.win_stat:
+    path: 'C:\Windows\Tasks\LudusHound'
+  register: tasks_dir_status_ludus
+
+- name: Create C:\Windows\Tasks\LudusHound directory if it doesn't exist
+  ansible.builtin.win_file:
+    path: 'C:\Windows\Tasks\LudusHound'
+    state: directory
+  when: not tasks_dir_status_ludus.stat.exists
+
+- name: Upload the BloodHound.zip file to the destination VM
+  ansible.builtin.copy:
+    src: '{{ upload_bloodhound_files_sourcePath }}'
+    dest: '{{ upload_bloodhound_files_destinationPath }}'
+    remote_src: no
+
+- name: Decompress the BloodHound.zip file using PowerShell
+  ansible.builtin.win_shell: |
+    $zipFile = "{{ upload_bloodhound_files_destinationPath }}\BloodHound.zip"
+    $extractPath = "{{ upload_bloodhound_files_destinationPath }}"
+    Expand-Archive -Path $zipFile -DestinationPath $extractPath -Force
+  args:
+    executable: powershell

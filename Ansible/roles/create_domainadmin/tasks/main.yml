@@ -1,0 +1,17 @@
+---
+- name: Create domainadmin in child domain
+  win_shell: |
+
+    New-ADUser -Name "domainadmin" -SamAccountName "domainadmin" -AccountPassword (ConvertTo-SecureString "password" -AsPlainText -Force) -Enabled $true -PasswordNeverExpires $true
+
+    Add-ADGroupMember -Identity "Domain Admins" -Members "domainadmin"
+
+    Add-ADGroupMember -Identity "Administrators" -Members "domainadmin"
+
+    
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludushound_domain }}\administrator'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"

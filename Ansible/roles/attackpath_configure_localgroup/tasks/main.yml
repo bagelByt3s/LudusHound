@@ -1,0 +1,57 @@
+---
+## Check and Create C:\Windows\Tasks Directory
+- name: Check if C:\Windows\Tasks directory exists
+  ansible.builtin.win_stat:
+    path: 'C:\Windows\Tasks'
+  register: tasks_dir_status
+
+
+- name: Run AddLocalAdminFromAttackPath.ps1  to read the attackpath.json file and create attack path
+  win_shell: |
+
+    cd C:\windows\tasks\LudusHound\AttackPath
+    
+    powershell -ep bypass C:\windows\tasks\LudusHound\AttackPath\Scripts\Add-LocalAdminFromAttackPath.ps1 -AttackPath C:\windows\tasks\LudusHound\AttackPath\attackpath.json
+
+
+
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+
+
+- name: Run Add-LocalRemoteDesktopUsersFromAttackPath.ps1 to read the attackpath.json file and create attack path
+  win_shell: |
+
+    cd C:\windows\tasks\LudusHound\AttackPath
+    
+
+    powershell -ep bypass C:\windows\tasks\LudusHound\AttackPath\Scripts\Add-LocalRemoteDesktopUsersFromAttackPath.ps1 -AttackPath C:\windows\tasks\LudusHound\AttackPath\attackpath.json
+   
+
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+
+
+- name: Run Update_RDU_LocalGroup to remove Domain Users from this group and add DAs to this group
+  win_shell: |
+
+    cd C:\windows\tasks\LudusHound\AttackPath
+    
+
+    powershell -ep bypass C:\windows\tasks\LudusHound\AttackPath\Scripts\Update_RDU_LocalGroup.ps1
+   
+
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludus_domain_fqdn }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"

@@ -1,0 +1,35 @@
+## Check and Create C:\Windows\Tasks Directory
+- name: Check if C:\Windows\Tasks directory exists
+  ansible.builtin.win_stat:
+    path: 'C:\Windows\Tasks'
+  register: tasks_dir_status
+
+
+- name: Ensure RSAT tools are installed
+  win_feature:
+    name: RSAT-AD-PowerShell
+    state: present
+
+- name: Import the ActiveDirectory module
+  win_shell: |
+    Import-Module ActiveDirectory
+  args:
+    executable: powershell
+  register: import_ad_module
+
+- name: Run Configure_OU_Members_Computers.ps1 to read the OUs.json and Computers.json file and configure users in the correct OUs.
+  win_shell: |
+
+    cd c:\windows\tasks\LudusHound\{{ ludushound_domain }}\
+
+    powershell -ep bypass C:\windows\tasks\ludushound\scripts\Relationships\Configure_OU_Members_Computers.ps1 -OUFile .\OUs.json -ComputersFile .\Computers.json -fullsend
+
+
+    
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '{{ ludushound_domain }}\{{ defaults.ad_domain_admin }}'
+    ansible_become_password: '{{ defaults.ad_domain_admin_password }}'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+

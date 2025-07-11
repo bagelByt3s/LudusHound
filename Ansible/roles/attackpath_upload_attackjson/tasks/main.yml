@@ -1,0 +1,56 @@
+---
+## Check and Create C:\Windows\Tasks Directory
+- name: Check if C:\Windows\Tasks directory exists
+  ansible.builtin.win_stat:
+    path: 'C:\Windows\Tasks'
+  register: tasks_dir_status
+
+- name: Create C:\Windows\Tasks directory if it doesn't exist
+  ansible.builtin.win_file:
+    path: 'C:\Windows\Tasks'
+    state: directory
+  when: not tasks_dir_status.stat.exists
+
+## Check and Create C:\Windows\Tasks\LudusHound Directory
+- name: Check if C:\Windows\Tasks\LudusHound directory exists
+  ansible.builtin.win_stat:
+    path: 'C:\Windows\Tasks\LudusHound'
+  register: tasks_dir_status_ludus
+
+- name: Create C:\Windows\Tasks\LudusHound directory if it doesn't exist
+  ansible.builtin.win_file:
+    path: 'C:\Windows\Tasks\LudusHound'
+    state: directory
+  when: not tasks_dir_status_ludus.stat.exists
+
+## Check and Create C:\Windows\Tasks\LudusHound\AttackPath Directory
+- name: Check if C:\Windows\Tasks\LudusHound\AttackPath directory exists
+  ansible.builtin.win_stat:
+    path: 'C:\Windows\Tasks\LudusHound\AttackPath'
+  register: tasks_dir_status_ludus
+
+- name: Create C:\Windows\Tasks\LudusHound\AttackPath directory if it doesn't exist
+  ansible.builtin.win_file:
+    path: 'C:\Windows\Tasks\LudusHound\AttackPath'
+    state: directory
+  when: not tasks_dir_status_ludus.stat.exists
+
+
+## Check and Create C:\Windows\Tasks\LudusHound\AttackPath\Scripts Directory
+- name: Check if C:\Windows\Tasks\LudusHound\AttackPath\Scripts directory exists
+  ansible.builtin.win_stat:
+    path: 'C:\Windows\Tasks\LudusHound\AttackPath\Scripts'
+  register: tasks_dir_status_ludus
+
+- name: Create C:\Windows\Tasks\LudusHound\AttackPath\Scripts directory if it doesn't exist
+  ansible.builtin.win_file:
+    path: 'C:\Windows\Tasks\LudusHound\AttackPath\Scripts'
+    state: directory
+  when: not tasks_dir_status_ludus.stat.exists
+
+
+- name: Upload the AttackPath file to the destination VM
+  ansible.builtin.copy:
+    src: '{{ ludushound_attackpath }}'
+    dest: 'C:\Windows\Tasks\LudusHound\AttackPath\attackpath.json'
+    remote_src: no

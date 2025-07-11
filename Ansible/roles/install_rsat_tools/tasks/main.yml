@@ -1,0 +1,100 @@
+---
+# Role: install_rsat
+# Description: Installs RSAT tools for Windows from a ZIP file
+
+
+
+- name: Create temp directory
+  win_file:
+    path: C:\Windows\temp
+    state: directory
+
+- name: Copy PowerShell script to enable Windows Update service
+  win_copy:
+    content: |
+      Set-Service -Name wuauserv -StartupType Manual
+      Start-Service -Name wuauserv
+    dest: C:\Windows\temp\enable_windows_update.ps1
+
+- name: Upload RSAT ZIP file
+  win_copy:
+    src: files/WindowsTH-KB2693643-x64-win10.zip
+    dest: C:\Windows\temp\WindowsTH-KB2693643-x64-win10.zip
+
+- name: Extract ZIP file
+  win_unzip:
+    src: C:\Windows\temp\WindowsTH-KB2693643-x64-win10.zip
+    dest: C:\Windows\temp\
+    delete_archive: no
+
+- name: Enable Windows Update service
+  win_shell: C:\Windows\temp\enable_windows_update.ps1
+  args:
+    executable: powershell.exe
+
+- name: Verify Windows Update service is running
+  win_service:
+    name: wuauserv
+    state: started
+
+#- name: Install RSAT from .msu package
+  #win_shell: cmd.exe /c wusa.exe C:\Windows\temp\WindowsTH-KB2693643-x64.msu /quiet
+  #win_shell: wusa.exe C:\Windows\temp\WindowsTH-KB2693643-x64.msu /quiet /norestart /log:C:\Windows\temp\rsat_install.log 
+  #win_shell: wusa.exe C:\Windows\temp\WindowsTH-KB2693643-x64.msu /quiet /norestart /log:C:\Windows\temp\rsat_install.log & powershell Start-Service -Name WinRM
+  #vars:
+  #  ansible_become: true
+  #  ansible_become_method: runas
+  #  ansible_become_user: '.\localuser'
+  #  ansible_become_password: 'password'
+  #  ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+  #async: 120  # 2 minutes (120 seconds)
+  #poll: 10    # Check every 10 seconds
+  #register: install_task
+  #ignore_errors: yes  # Continue even if there's an error
+
+  ## Adding reboot command because the rsat install will stop the winrm service which is needed by ansible 
+
+- name: Copy PowerShell script to install rsat, then restart the system to start the winrmservice 
+  win_copy:
+    content: |
+
+      Start-Process -FilePath "wusa.exe" -ArgumentList "C:\Windows\temp\WindowsTH-KB2693643-x64.msu /quiet /log:C:\Windows\temp\rsat_install.log" -Wait
+
+      # Then reboot after installation completes
+      Restart-Computer -Force
+
+    
+    dest: C:\Windows\temp\install_rsat.ps1
+
+
+
+- name: Install RSAT from .msu package
+  win_shell: |
+
+    C:\Windows\temp\install_rsat.ps1
+
+  vars:
+    ansible_become: true
+    ansible_become_method: runas
+    ansible_become_user: '.\localuser'
+    ansible_become_password: 'password'
+    ansible_become_flags: "logon_type=interactive logon_flags=with_profile"
+  async: 120
+  poll: 0
+  ignore_errors: yes
+
+ #Wait for 5 minutes (300 seconds) after reboot, winrm takes a couple minutes to wake up 
+- name: Wait for 5 minutes
+  pause:
+    seconds: 420
+
+
+
+
+- name: Clean up temporary files
+  win_file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - C:\Windows\temp\enable_windows_update.ps1
+    - C:\Windows\temp\WindowsTH-KB2693643-x64-win10.zip
