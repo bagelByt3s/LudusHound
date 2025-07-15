@@ -48,7 +48,7 @@ LudusHound contains ansible roles used to replicate the AD environment
 Install Ansible Roles
 
 ```
-git clone https://bagelByt3s/LudusHound /opt/LudusHound
+git clone https://github.com/bagelByt3s/LudusHound /opt/LudusHound
 ansible-galaxy collection build /opt/LudusHound/Ansible
 ludus ansible collection add ./bagelByt3s-ludushound-1.0.0.tar.gz
 ```
