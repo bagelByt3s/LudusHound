@@ -49,7 +49,8 @@ Install Ansible Roles
 
 ```
 git clone https://bagelByt3s/LudusHound /opt/LudusHound
-ludus ansible collection add /opt/LudusHound/Ansible
+cd /opt/LudusHound/Ansible
+for ROLE_DIR in *; do ludus ansible role add -d $ROLE_DIR; done
 ```
 ## Role Requirements
 ```
