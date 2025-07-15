@@ -49,7 +49,8 @@ Install Ansible Roles
 
 ```
 git clone https://bagelByt3s/LudusHound /opt/LudusHound
-ludus ansible collection add /opt/LudusHound/Ansible
+ansible-galaxy collection build /opt/LudusHound/Ansible
+ludus ansible collection add ./bagelByt3s-ludushound-1.0.0.tar.gz
 ```
 ## Role Requirements
 ```
