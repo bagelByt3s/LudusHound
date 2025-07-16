@@ -8,10 +8,10 @@
 - name: Run Update_RDU_LocalGroup to remove Domain Users from this group and add DAs to this group
   win_shell: |
 
-    cd C:\windows\tasks\LudusHound\AttackPath
+    cd C:\windows\tasks\LudusHound
     
 
-    powershell -ep bypass C:\windows\tasks\LudusHound\AttackPath\Scripts\Update_RDU_LocalGroup.ps1
+    powershell -ep bypass C:\windows\tasks\LudusHound\Scripts\Update_RDU_LocalGroup.ps1
    
 
   vars:
