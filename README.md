@@ -62,7 +62,7 @@ ludus ansible collection add https://github.com/bagelByt3s/LudusHound/raw/refs/h
 
 ```
 cd /opt/LudusHound
-go mod init 
+go mod init LudusHound
 go mod tidy 
 go get gopkg.in/yaml.v3
 go build
