@@ -51,10 +51,11 @@ Install Ansible Roles
 git clone https://github.com/bagelByt3s/LudusHound /opt/LudusHound
 ludus ansible collection add https://github.com/bagelByt3s/LudusHound/raw/refs/heads/main/Collections/bagelByt3s-ludushound-1.0.0.tar.gz
 ```
-## Role Requirements
+## Requirements
 ```
 - Ludus
 - Network Access to BloodHound CE
+- Go
 ```
 
 ## Build LudusHound 
