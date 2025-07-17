@@ -116,12 +116,6 @@ func IsChildDomain(domainName string) bool {
 	return len(parts) >= 3
 }
 
-func RemovePrefix([]string arr){
-	for i, role := range arr {
-		arr[i] = strings.TrimPrefix(role, "bagelByt3s.ludushound.")
-	}
-}
-
 //Configure variables before generating Ludus Config
 func CoordinateLudusYMLVariables(filesMapPath string, aliveComputers *string, outputFile string, localRoles bool) {
 

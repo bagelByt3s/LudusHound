@@ -85,7 +85,7 @@ func CreateLudusConfig_AttackPath(dcFQDN, attackPath string) string {
 	return fmt.Sprintf("Ludus config for DC: %s with attack path: %s", dcFQDN, attackPath)
 }
 
-func RemovePrefix([]string arr){
+func RemovePrefix(arr []string){
 	for i, role := range arr {
 		arr[i] = strings.TrimPrefix(role, "bagelByt3s.ludushound.")
 	}
