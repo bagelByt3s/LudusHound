@@ -19,7 +19,7 @@ func main() {
 	DC := flag.String("DomainController", "", "Required for AttackPath Argument. Hostname of DC (e.g., DC01)")
 	aliveComputers := flag.String("AliveComputers", "", "Comma-separated list of computers (e.g., DC01.specter.domain,Workstation01.specter.domain,DC01.phantom.domain)")
 	filesMapJson := flag.String("FilesMapJson", "", "Path to a JSON file containing the files map")
-
+	localRoles := flag.Bool("LocalRoles", false, "Use local Ansible role names in the config. This will pull roles from Ansible/roles")
 
 	// Parse the flags
 	flag.Parse()
@@ -66,7 +66,7 @@ func main() {
 
 
 			//Create Variables ready for creation of Ludus Range
-			Utils.CoordinateLudusYMLVariables(*filesMapJson, aliveComputers, *output)
+			Utils.CoordinateLudusYMLVariables(*filesMapJson, aliveComputers, *output, *localRoles)
 
 
 		} else if *server != "" && *user != "" && *pass != "" {
@@ -84,7 +84,7 @@ func main() {
 			
 			
 			//Create Variables ready for creation of Ludus Range
-			Utils.CoordinateLudusYMLVariables(filesMapPath, aliveComputers, *output)
+			Utils.CoordinateLudusYMLVariables(filesMapPath, aliveComputers, *output, *localRoles)
 
 		}
 
@@ -109,7 +109,7 @@ func main() {
 			}
 			
 			// Parse the attack path and generate YAML configuration
-			yamlContent, err := Utils.GenerateLudusYAMLWithAttackPath(hostname, domain, *attackPath)
+		        yamlContent, err := Utils.GenerateLudusYAMLWithAttackPath(hostname, domain, *attackPath, *localRoles)
 			if err != nil {
 				fmt.Printf("Error parsing attack path: %v\n", err)
 				os.Exit(1)
