@@ -45,12 +45,19 @@ LudusHound contains ansible roles used to replicate the AD environment
 
 ## Installation
 
-Install Ansible Roles
+### Install Ansible Roles
 
+#### Using Ansible Collection
 ```
 git clone https://github.com/bagelByt3s/LudusHound /opt/LudusHound
 ludus ansible collection add https://github.com/bagelByt3s/LudusHound/raw/refs/heads/main/Collections/bagelByt3s-ludushound-1.0.0.tar.gz
 ```
+
+#### Using local directory
+```sh
+/opt/LudusHound/install-roles.sh install # you can pass -u <ludus-user> if you are targeting a different user 
+```
+
 ## Requirements
 ```
 - Ludus
@@ -60,7 +67,7 @@ ludus ansible collection add https://github.com/bagelByt3s/LudusHound/raw/refs/h
 
 ## Build LudusHound 
 
-```
+```sh
 cd /opt/LudusHound
 go mod init LudusHound
 go mod tidy 
@@ -71,7 +78,7 @@ go build
 ## Run LudusHound 
 Create Ludus range and retrieve AD object info from BloodHound server
 
-```
+```sh
 ./LudusHound --Server 127.0.0.1 --User neo4j -Pass bloodhoundcommunityedition --Output LudusRanges/LudusHound.yml --AliveComputers TITAN.GHOST.LOCAL,Eclipse.Child.Ghost.Local,Avalanche.Specter.Local,RAVEN.GHOST.LOCAL,Nova.Child.Ghost.Local,Mirage.Specter.Local
 
 Server: 127.0.0.1
@@ -102,10 +109,14 @@ Creating config for MIRAGE.SPECTER.LOCAL
 Writing Ludus Range to LudusRanges/LudusHound.yml
 
 ```
+### Run LudusHound with local roles
+```sh
+./LudusHound -LocalRoles -Server 127.0.0.1 -User neo4j -Pass bloodhoundcommunityedition -Output LudusRanges/LudusHound.yml -AliveComputers TITAN.GHOST.LOCAL,Eclipse.Child.Ghost.Local,Avalanche.Specter.Local,RAVEN.GHOST.LOCAL,Nova.Child.Ghost.Local,Mirage.Specter.Local
+```
 ## Run LudusHound without querying BloodHound server
  The filesMap.json file is created every time a BloodHound data is collected with the --Server, --User, and --Pass argument. This file can be fed into LudusHound so that it does not have to query the BloodHound server every time.
 
-```
+```sh
  ./LudusHound  --FilesMapJson ./Tmp/2025-04-11_16-54-39/filesMap.json --Output LudusRanges/LudusHound.yml --AliveComputers hydrogen.covertius.local,rikers.cyberpartners.local,zeus.citadel.covertius.local,arsenic.covertius.local,alcatraz.cyberpartners.local,heracles.citadel.covertius.local
 
 Provided FilesMapJson file: ./Tmp/2025-04-11_16-54-39/filesMap.json
@@ -135,7 +146,7 @@ Writing Ludus Range to LudusRanges/LudusHound.yml
 ```
 
 ## Deploy Ludus Range
-```
+```sh
 ludus range config set -f LudusRanges/LudusHound-Range.yml
 ludus range deploy
 ```
@@ -150,7 +161,7 @@ To obtain the JSON file, navigate towards the desired Attack Path in BloodHound,
 
 Simply provide this JSON file to LudusHound to create the stripped down down Ludus range. 
 
-```
+```sh
 ./LudusHound --AttackPath graph.json  --DomainController TITAN.GHOST.LOCAL --Output LudusRanges/AttackPath.yml
 Successfully created Ludus range configuration at: LudusRanges/AttackPath.yml
 

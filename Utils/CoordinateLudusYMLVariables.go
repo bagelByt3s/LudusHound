@@ -7,6 +7,7 @@ import (
 	"log"
 	"strings"
 	"os"
+	"path/filepath"
 )
 
 /*
@@ -115,9 +116,8 @@ func IsChildDomain(domainName string) bool {
 	return len(parts) >= 3
 }
 
-
 //Configure variables before generating Ludus Config
-func CoordinateLudusYMLVariables(filesMapPath string, aliveComputers *string, outputFile string) {
+func CoordinateLudusYMLVariables(filesMapPath string, aliveComputers *string, outputFile string, localRoles bool) {
 
 	fmt.Println("Generating Ludus YML Config:")
 
@@ -263,6 +263,10 @@ func CoordinateLudusYMLVariables(filesMapPath string, aliveComputers *string, ou
 	
 							
 						}
+						// If user wants local roles just remove the prefix
+						if localRoles {
+							RemovePrefix(ansibleRoles)
+						}
 
 						// Split the FQDN by dot (`.`)
 						parts := strings.Split(domainName, ".")
@@ -348,6 +352,9 @@ func CoordinateLudusYMLVariables(filesMapPath string, aliveComputers *string, ou
 							"bagelByt3s.ludushound.disable_local_firewall",
 							
 						}
+						if localRoles {
+							RemovePrefix(ansibleRoles)
+						}
 	
 						// Define all role variables 
 						ansibleRoleVars = map[string]interface{}{
@@ -387,6 +394,9 @@ func CoordinateLudusYMLVariables(filesMapPath string, aliveComputers *string, ou
 						"bagelByt3s.ludushound.configure_relationship_sessions",
 						"bagelByt3s.ludushound.configure_unconstraineddelegation",
 						"bagelByt3s.ludushound.disable_local_firewall",
+					}
+					if localRoles {
+						RemovePrefix(ansibleRoles)
 					}
 
 					// Define all role variables 
@@ -428,6 +438,9 @@ func CoordinateLudusYMLVariables(filesMapPath string, aliveComputers *string, ou
 						"bagelByt3s.ludushound.configure_relationship_sessions",
 						"bagelByt3s.ludushound.configure_unconstraineddelegation",
 						"bagelByt3s.ludushound.disable_local_firewall",
+					}
+					if localRoles {
+						RemovePrefix(ansibleRoles)
 					}
 
 					// Define all role variables (you can dynamically add role variables here)
@@ -478,6 +491,12 @@ func CoordinateLudusYMLVariables(filesMapPath string, aliveComputers *string, ou
 		
 	// Generate YAML and write it to a file
 	fmt.Println("\nWriting Ludus Range to " + outputFile)
+
+	// Ensure output directory exists
+	dir := filepath.Dir(outputFile)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		log.Fatalf("Error creating output directory: %v", err)
+	}
 
 	err = createYMLFile(computers, computersNoDomainMember, outputFile)
 	if err != nil {
