@@ -53,7 +53,7 @@ git clone https://github.com/bagelByt3s/LudusHound /opt/LudusHound
 ludus ansible collection add https://github.com/bagelByt3s/LudusHound/raw/refs/heads/main/Collections/bagelByt3s-ludushound-1.0.0.tar.gz
 ```
 
-#### Using local directory
+#### Using Local Directory
 ```sh
 /opt/LudusHound/install-roles.sh install # you can pass -u <ludus-user> if you are targeting a different user 
 ```
