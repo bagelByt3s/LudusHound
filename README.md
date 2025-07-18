@@ -48,7 +48,7 @@ LudusHound contains ansible roles used to replicate the AD environment
 ### Install Ansible Roles
 
 #### Using Ansible Collection
-Ansible roles are hosted on this GitHub repo instead of Ansible-Galaxy because they were too large to be hosted. 
+Ansible roles are hosted on this GitHub repo instead of Ansible-Galaxy because they were too large. 
 ```
 git clone https://github.com/bagelByt3s/LudusHound /opt/LudusHound
 ludus ansible collection add https://github.com/bagelByt3s/LudusHound/raw/refs/heads/main/Collections/bagelByt3s-ludushound-1.0.0.tar.gz
@@ -77,9 +77,8 @@ go build
 ```
 
 ## Run LudusHound 
-Create Ludus range and retrieve AD object info from BloodHound server
-Note: Use the --LocalRoles flag if Ansible roles were installed locally with the install-roles.sh script
-
+Create Ludus range and retrieve AD object info from BloodHound server `  
+Note: Use the --LocalRoles flag if Ansible roles were installed locally with the install-roles.sh script  
 ```sh
 ./LudusHound --Server 127.0.0.1 --User neo4j -Pass bloodhoundcommunityedition --Output LudusRanges/LudusHound.yml --AliveComputers TITAN.GHOST.LOCAL,Eclipse.Child.Ghost.Local,Avalanche.Specter.Local,RAVEN.GHOST.LOCAL,Nova.Child.Ghost.Local,Mirage.Specter.Local
 
