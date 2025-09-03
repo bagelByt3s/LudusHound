@@ -63,4 +63,3 @@
     state: absent
   loop:
     - C:\Windows\temp\enable_windows_update.ps1
-    - C:\Windows\temp\WindowsTH-KB2693643-x64-win10.zip
